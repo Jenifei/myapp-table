@@ -3,20 +3,19 @@
         <input type="text" placeholder="Please Enter..." v-model="query">
         <table class="gridtable">
             <thead>
-                <th>UserName</th>
-                <th>UserAge</th>
+                <th>UserName</th>                         
+                <th >UserAge<span @click="sort('age')"><a> ↑↓</a></span></th>
             </thead>
             <tbody>
                 <tr v-for ="(item,index) in showLists" :key="index">
                     <td>{{item.name}}</td>
                     <td>{{item.age}}</td>
                 </tr>
-                <button @click="changePage(-1)">上一页</button>
-                <span>第{{showPage}}页/共{{totalPage}}页</span>
-                <button @click="changePage(1)">下一页</button>
             </tbody>
+            <button @click="prevPage">上一页</button>
+            <span>第{{currentPage}}页/共{{totalPage}}页</span>
+            <button @click="nextPage">下一页</button>
         </table>
-
     </div>
 </template>
 
@@ -44,68 +43,54 @@ export default {
                 {'name':'Rose','age':'26'},
                 {'name':'Jack','age':'23'},
             ],
-                totalPage:0,
-                limitPage:5,
-                showPage:1,
-                showList:[],
-                filterList:[]               
+            currentSort:'name',
+            currentSortDir:'asc',
+            totalPage:0,
+            pageSize:5,
+            currentPage:1
         }
     },
 
-    mounted(){       
-        this.getList();
+    mounted(){  
+        this.totalPage=Math.ceil(this.items.length/this.pageSize);
+        this.totalPage=this.totalPage==0?1:this.totalPage; 
     },
 
     methods:{
-            getList(){
-                this.showList = this.items.filter((item,index)=>{
-                    if(index<this.limitPage*this.showPage && index>=this.limitPage*(this.showPage-1)){
-                        return item;
-                    }                  
-                })
-                this.getShowList();
-            },
-            getShowList(){
-                this.showList = this.items.slice((this.showPage-1)*this.limitPage,this.showPage*this.limitPage)
-                this.totalPage = Math.ceil(this.items.length/this.limitPage)
-            },
-            changePage(num){
-                if(num === 1){
-                    this.showPage++;
-                    if(this.showPage>this.totalPage){
-                        this.showPage = this.totalPage;
-
-                    }
-                }else if(num === -1){
-                    this.showPage--;
-                    if(this.showPage<=1){
-                        this.showPage = 1;
-                    }
-                }
-            this.getShowList()
-        },
-        listFilter(){
-                var query = this.query  && this.query.toLowerCase()
-                if(this.query){
-                     this.filterList = this.items.filter((item)=>{
-                        return Object.keys(item).some(function (key) {
-                            return String(item[key]).toLowerCase().match(query)
-                        })
-                    })
-
-                    this.showList = this.filterList.slice((this.showPage-1)*this.limitPage,this.showPage*this.limitPage)
-                    this.totalPage = Math.ceil(this.filterList.length/this.limitPage)
-                }
+        sort:function(s) {
+            if(s === this.currentSort) {
+                this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
             }
-
+            this.currentSort = s;
+        },
+        nextPage:function() {
+            if((this.currentPage*this.pageSize) < this.items.length) this.currentPage++;
+        },
+        prevPage:function() {
+            if(this.currentPage > 1) this.currentPage--;
+        }
     },
     
     computed:{
-            showLists(){
-                this.getShowList();
-                this.listFilter();
-                return this.showList;
-            }
+        showLists:function() {
+            var items = this.items
+            var query = this.query  && this.query.toLowerCase()
+            return items.sort((a,b) => {
+                let modifier = 1;
+                if(this.currentSortDir === 'desc') modifier = -1;
+                if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+                if(a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+                return 0;
+            }).filter((item, index) => {
+                let start = (this.currentPage-1)*this.pageSize;
+                let end = this.currentPage*this.pageSize;
+                if(index >= start && index < end){
+                    return Object.keys(item).some(function (key) {
+                        return String(item[key]).toLowerCase().match(query)
+                    })
+                }
+            });
+        }
     },
 
 }
@@ -140,5 +125,7 @@ table.gridtable td {
     border-color: #666666;
     background-color: #ffffff;
 }
-
+a:hover{
+    cursor:pointer
+}
 </style>
