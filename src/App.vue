@@ -3,21 +3,21 @@
     <img alt="Vue logo" src="./assets/logo.png">
     <HelloWorld msg="Welcome to myapp-table"/>
     <hr/>
-    <!-- <MyTable></MyTable> -->
-    <TableApp></TableApp>
+     <MyTable></MyTable>
+    <!-- <TableApp></TableApp> -->
   </div>
 </template>
 
 <script>
 import HelloWorld from './components/HelloWorld.vue'
-import TableApp from './components/TableApp.vue'
-// import MyTable from './components/MyTable.vue'
+//import TableApp from './components/TableApp.vue'
+import MyTable from './components/MyTable.vue'
 
 export default {
   name: 'app',
   components: {
     HelloWorld,
-    TableApp,
+    //TableApp,
     // MyTable,
   }
 }
