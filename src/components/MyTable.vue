@@ -1,18 +1,19 @@
 <template>
     <div>
-        <input type="text" placeholder="Please Enter..." v-model="searchText">
+        <input type="text" placeholder="Please Enter..." v-model="query">
         <table class="gridtable">
             <thead>
-                <th>OrderNumber</th>
                 <th>UserName</th>
                 <th>UserAge</th>
             </thead>
             <tbody>
-                <tr v-for ="(item,index) in filterData" :key="(item,index)">
-                    <td>{{index+1}}</td>
+                <tr v-for ="(item,index) in showLists" :key="index">
                     <td>{{item.name}}</td>
                     <td>{{item.age}}</td>
                 </tr>
+                <button @click="changePage(-1)">上一页</button>
+                <span>第{{showPage}}页/共{{totalPage}}页</span>
+                <button @click="changePage(1)">下一页</button>
             </tbody>
         </table>
 
@@ -24,7 +25,7 @@ export default {
     name:'MyTable',
     data(){
         return{
-            searchText:'',
+            query:'',
             item:{'name':'','age':''},
             items:[
                 {'name':'Mike','age':'23'},
@@ -42,28 +43,69 @@ export default {
                 {'name':'Paul','age':'25'},
                 {'name':'Rose','age':'26'},
                 {'name':'Jack','age':'23'},
-            ]
+            ],
+                totalPage:0,
+                limitPage:5,
+                showPage:1,
+                showList:[],
+                filterList:[]               
         }
     },
 
-    computed:{
-        //搜索过滤
-        filterData: function () {
-            var searchText = this.searchText  && this.searchText.toLowerCase()
-             var items = this.items
-                var items1
-                if (searchText) {
-                    items1 = items.filter(function (item) {
+    mounted(){       
+        this.getList();
+    },
+
+    methods:{
+            getList(){
+                this.showList = this.items.filter((item,index)=>{
+                    if(index<this.limitPage*this.showPage && index>=this.limitPage*(this.showPage-1)){
+                        return item;
+                    }                  
+                })
+                this.getShowList();
+            },
+            getShowList(){
+                this.showList = this.items.slice((this.showPage-1)*this.limitPage,this.showPage*this.limitPage)
+                this.totalPage = Math.ceil(this.items.length/this.limitPage)
+            },
+            changePage(num){
+                if(num === 1){
+                    this.showPage++;
+                    if(this.showPage>this.totalPage){
+                        this.showPage = this.totalPage;
+
+                    }
+                }else if(num === -1){
+                    this.showPage--;
+                    if(this.showPage<=1){
+                        this.showPage = 1;
+                    }
+                }
+            this.getShowList()
+        },
+        listFilter(){
+                var query = this.query  && this.query.toLowerCase()
+                if(this.query){
+                     this.filterList = this.items.filter((item)=>{
                         return Object.keys(item).some(function (key) {
-                            return String(item[key]).toLowerCase().match(searchText)
+                            return String(item[key]).toLowerCase().match(query)
                         })
                     })
 
-                } else {
-                    items1 = this.items
+                    this.showList = this.filterList.slice((this.showPage-1)*this.limitPage,this.showPage*this.limitPage)
+                    this.totalPage = Math.ceil(this.filterList.length/this.limitPage)
                 }
-                return items1
-        }
+            }
+
+    },
+    
+    computed:{
+            showLists(){
+                this.getShowList();
+                this.listFilter();
+                return this.showList;
+            }
     },
 
 }
@@ -98,4 +140,5 @@ table.gridtable td {
     border-color: #666666;
     background-color: #ffffff;
 }
+
 </style>
