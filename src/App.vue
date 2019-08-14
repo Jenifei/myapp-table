@@ -18,7 +18,7 @@ export default {
   components: {
     HelloWorld,
     //TableApp,
-    // MyTable,
+    MyTable,
   }
 }
 </script>
